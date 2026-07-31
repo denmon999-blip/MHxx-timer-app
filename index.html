@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0144)file:///C:/Users/keimonden999/Downloads/%E3%82%BF%E3%82%A4%E3%83%9E%E3%83%BC%E7%B5%B1%E5%90%88%E5%86%8D%E5%86%8D%E6%94%B9%E5%96%84%E7%89%88.html -->
+<!-- saved from url=(0126)file:///C:/Users/keimonden999/Downloads/%E3%82%BF%E3%82%A4%E3%83%9E%E3%83%BC%E7%B5%B1%E5%90%88%E5%AE%8C%E6%88%90%E7%89%88.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
         .count-display { font-size: 4rem; font-weight: bold; color: #007bff; margin: 1rem 0; }
         .controls { margin-top: 1.5rem; }
         input[type="number"] { width: 60px; padding: 5px; font-size: 1rem; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 5px; color: #333;}
-        .wide-input { width: 90px !important; }
+        .wide-input { width: 80px !important; }
         button { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border: none; border-radius: 5px; transition: 0.2s; margin: 5px;}
         .start { background-color: #28a745; color: white; }
         .start:hover { background-color: #218838; }
@@ -24,10 +24,11 @@
         .delay-start:hover { background-color: #138496; }
         .transfer-btn { background-color: #6f42c1; color: white; font-size: 0.9rem; padding: 6px 12px; margin-top: 10px; }
         .transfer-btn:hover { background-color: #59359a; }
-        .calc-btn { background-color: #17a2b8; color: white; font-size: 0.8rem; padding: 4px 8px; margin-left: 5px; }
-        .calc-btn:hover { background-color: #138496; }
+        .calc-btn { background-color: #20c997; color: white; font-size: 0.85rem; padding: 5px 10px; margin-top: 5px; }
+        .calc-btn:hover { background-color: #17a57a; }
         .setting { margin: 10px 0; text-align: left; font-size: 0.9rem; }
         .setting label { display: inline-block; width: 110px; font-weight: bold; }
+        .calc-setting { background: rgba(0, 123, 255, 0.05); padding: 8px; border-radius: 8px; margin: 8px 0; border: 1px solid rgba(0, 123, 255, 0.1); }
         .section {
             margin-top: 2rem;
             padding-top: 1.5rem;
@@ -59,7 +60,7 @@
         #lapTimesList li:last-child {
             border-bottom: none;
         }
-                
+        
         /* Countdown Timer Specific Styles */
         .countdown-display { font-size: 3rem; font-weight: bold; font-family: monospace; color: #000; margin-bottom: 20px; }
         .countdown-phase-label { font-size: 0.9rem; color: #000; margin-bottom: 5px; height: 1.2rem; }
@@ -101,6 +102,10 @@
             border-color: #555;
             color: #e0e0e0;
         }
+        body.night-mode .calc-setting {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #444;
+        }
         body.night-mode .toggle-mode-btn {
             background-color: #555;
             color: #e0e0e0;
@@ -111,7 +116,6 @@
     </style>
 </head>
 <body class="night-mode">
-
 <div class="container">
     <h2>1000カウント・メトロノーム</h2>
     <div>
@@ -157,13 +161,20 @@
             <label>待機時間</label>
             <input type="number" id="countdownMin" value="0"> 分 <input type="number" id="countdownSec" value="30" step="0.001"> 秒
         </div>
-        <!-- 待機時間計算用ブロック -->
-        <div class="setting" style="margin-left: 10px; font-size: 0.85rem;">
-            A: <input type="number" id="calcA" class="wide-input" placeholder="例:100000"> 
-            B: <input type="number" id="calcB" class="wide-input" placeholder="例:50000">
-            <button class="calc-btn" onclick="calculateWaitTime()">計算して待機時間にセット</button>
+        <!-- 待機時間の計算用パラメータ A, B, C -->
+        <div class="setting calc-setting">
+            <div style="margin-bottom: 5px;">
+                <label style="width: auto; margin-right: 5px;">A:</label>
+                <input type="number" id="calcA" class="wide-input" placeholder="5-6桁">
+                <label style="width: auto; margin-left: 5px; margin-right: 5px;">B:</label>
+                <input type="number" id="calcB" class="wide-input" placeholder="5-6桁">
+                <label style="width: auto; margin-left: 5px; margin-right: 5px;">C:</label>
+                <input type="number" id="calcC" style="width: 45px;" placeholder="1-2桁" value="0">
+            </div>
+            <div style="text-align: center;">
+                <button class="calc-btn" onclick="calculateAndApplyWaitTime()">(A-B-C)/30 を待機時間に適用</button>
+            </div>
         </div>
-
         <div class="setting">
             <label>開始までの猶予</label>
             <input type="number" id="countdownDelayMin" value="0"> 分 <input type="number" id="countdownDelaySec" value="5"> 秒
@@ -183,12 +194,10 @@
             <button id="resetCountdownBtn" class="reset">リセット</button>
         </div>
     </div>
-
     <div class="section">
         <button class="toggle-mode-btn" onclick="toggleNightMode()">モード切り替え</button>
     </div>
 </div>
-
 <script>
     let count = 0;
     let metronomeTimer = null;
@@ -278,6 +287,31 @@
         document.getElementById('display').innerText = count;
         startBtn.style.display = 'inline-block';
         stopBtn.style.display = 'none';
+    }
+
+    // (A - B - C) / 30 の計算関数
+    function calculateAndApplyWaitTime() {
+        const valA = parseFloat(document.getElementById('calcA').value) || 0;
+        const valB = parseFloat(document.getElementById('calcB').value) || 0;
+        const valC = parseFloat(document.getElementById('calcC').value) || 0;
+
+        const totalSeconds = (valA - valB - valC) / 30;
+
+        if (totalSeconds < 0) {
+            alert('計算結果がマイナスになりました。入力値を確認してください。');
+            return;
+        }
+
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+
+        document.getElementById('countdownMin').value = minutes;
+        document.getElementById('countdownSec').value = parseFloat(seconds.toFixed(3));
+        
+        // 待機表示の更新
+        if (countdownPhase === "idle") {
+            resetCountdownTimer();
+        }
     }
 
     // Countdown Timer functions
@@ -389,20 +423,6 @@
         updateCountdownDisplay((initialMin * 60 + initialSec) * 1000);
         document.getElementById('countdownPhaseLabel').textContent = "待機中";
         countdownLastBeepedSecond = -1;
-    }
-
-    // 待機時間の計算処理 ( (A - B) / 30 を小数点3桁で入力 )
-    function calculateWaitTime() {
-        const aVal = parseFloat(document.getElementById('calcA').value);
-        const bVal = parseFloat(document.getElementById('calcB').value);
-
-        if (isNaN(aVal) || isNaN(bVal)) {
-            alert("AとBに数値を入力してください。");
-            return;
-        }
-
-        const resultSec = (aVal - bVal) / 30;
-        document.getElementById('countdownSec').value = parseFloat(resultSec.toFixed(3));
     }
 
     // Stopwatch functions
@@ -572,18 +592,18 @@
     // ストップウォッチのタイムをカウントダウンの切り上げ欄に転記する機能 (小数点3桁対応)
     function transferToCountdownUp() {
         let targetMs = 0;
-        
+        // ラップが記録されていれば直近のラップタイム（単独）、なければ現在のストップウォッチ合計時間を使用
         if (lapTimes.length > 0) {
             targetMs = lapTimes[lapTimes.length - 1].duration;
         } else {
-            targetMs = stopwatchRunning 
-                ? (Date.now() - stopwatchStartTime + stopwatchElapsedTime) 
-                : stopwatchElapsedTime;
+            targetMs = stopwatchRunning
+                 ? (Date.now() - stopwatchStartTime + stopwatchElapsedTime)
+                 : stopwatchElapsedTime;
         }
 
         const totalSeconds = targetMs / 1000;
         const minutes = Math.floor(totalSeconds / 60);
-        const seconds = (totalSeconds % 60).toFixed(3); // 小数点3桁に変更
+        const seconds = (totalSeconds % 60).toFixed(3);
 
         document.getElementById('countdownUpMin').value = minutes;
         document.getElementById('countdownUpSec').value = parseFloat(seconds);
