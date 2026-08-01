@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0126)file:///C:/Users/keimonden999/Downloads/%E3%82%BF%E3%82%A4%E3%83%9E%E3%83%BC%E7%B5%B1%E5%90%88%E5%AE%8C%E6%88%90%E7%89%88.html -->
+<!-- saved from url=(0070)file:///C:/Users/keimonden999/Downloads/gemini-code-1785579543861.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -118,6 +118,18 @@
 <body class="night-mode">
 <div class="container">
     <h2>1000カウント・メトロノーム</h2>
+    
+    <!-- メトロノーム Target計算フォーム -->
+    <div class="calc-setting" style="text-align: center;">
+        <div style="margin-bottom: 5px;">
+            <label style="width: auto; margin-right: 5px;">A:</label>
+            <input type="number" id="metroCalcA" class="wide-input" placeholder="5-6桁">
+            <label style="width: auto; margin-left: 5px; margin-right: 5px;">B:</label>
+            <input type="number" id="metroCalcB" style="width: 50px;" placeholder="2桁秒">
+        </div>
+        <button class="calc-btn" onclick="calculateAndApplyTarget()">計算してターゲットに適用</button>
+    </div>
+
     <div>
         <label for="targetCount" style="color: #007bff; font-weight: bold;">Target:</label>
         <input type="number" id="targetCount" value="1000" min="1">
@@ -125,7 +137,8 @@
     <div id="display" class="count-display">0</div>
     <div>
         <label style="color: #ff0000; font-weight: bold;">BPM: </label>
-        <input type="number" id="bpm" value="120" min="40" max="300">
+        <!-- デフォルトを 100 に変更 -->
+        <input type="number" id="bpm" value="100" min="40" max="300">
     </div>
     <div class="controls">
         <button id="startMetronomeBtn" class="start" onclick="toggleMetronome()" style="display: inline-block;">スタート</button>
@@ -151,9 +164,9 @@
         <ul id="lapTimesList"></ul>
     </div>
 
-    <!-- Countdown Timer Section -->
+    <!-- Countdown Timer 1 Section -->
     <div class="section">
-        <h3 style="font-size: 1.8rem; color: #007bff; margin-top: 0;">カウントダウンタイマー</h3>
+        <h3 style="font-size: 1.8rem; color: #007bff; margin-top: 0;">カウントダウンタイマー1</h3>
         <div id="countdownPhaseLabel" class="countdown-phase-label">待機中</div>
         <div id="countdownDisplay" class="countdown-display">00 分 30 秒 00</div>
 
@@ -177,7 +190,8 @@
         </div>
         <div class="setting">
             <label>開始までの猶予</label>
-            <input type="number" id="countdownDelayMin" value="0"> 分 <input type="number" id="countdownDelaySec" value="5"> 秒
+            <!-- デフォルトを 3 秒に変更 -->
+            <input type="number" id="countdownDelayMin" value="0"> 分 <input type="number" id="countdownDelaySec" value="3" step="0.001"> 秒
         </div>
         <div class="setting">
             <label>切り上げ</label>
@@ -194,16 +208,60 @@
             <button id="resetCountdownBtn" class="reset">リセット</button>
         </div>
     </div>
+
+    <!-- Countdown Timer 2 Section -->
+    <div class="section">
+        <h3 style="font-size: 1.8rem; color: #007bff; margin-top: 0;">カウントダウンタイマー2</h3>
+        <div id="countdown2PhaseLabel" class="countdown-phase-label">待機中</div>
+        <div id="countdown2Display" class="countdown-display">00 分 30 秒 00</div>
+
+        <div class="setting">
+            <label>待機時間</label>
+            <input type="number" id="countdown2Min" value="0"> 分 <input type="number" id="countdown2Sec" value="30" step="0.001"> 秒
+        </div>
+        <div class="setting">
+            <label>開始までの猶予</label>
+            <input type="number" id="countdown2DelayMin" value="0"> 分 <input type="number" id="countdown2DelaySec" value="3" step="0.001"> 秒
+        </div>
+
+        <!-- カウントダウンタイマー2用 パラメータ A, B, C 計算枠 -->
+        <div class="setting calc-setting">
+            <div style="margin-bottom: 5px; text-align: center;">
+                <label style="width: auto; margin-right: 2px;">A:</label>
+                <input type="number" id="calc2A" style="width: 65px;" placeholder="4桁">
+                <label style="width: auto; margin-left: 2px; margin-right: 2px;">B:</label>
+                <input type="number" id="calc2B" style="width: 45px;" placeholder="1-2桁">
+                <label style="width: auto; margin-left: 2px; margin-right: 2px;">C:</label>
+                <input type="number" id="calc2C" style="width: 50px;" placeholder="2桁秒">
+            </div>
+            <div style="text-align: center;">
+                <button class="calc-btn" onclick="calculateAndApplyTimer2()">Cを待機時間、((A-B-700)/30)-C を猶予に適用</button>
+            </div>
+        </div>
+
+        <div class="setting" style="text-align: center; margin-top: 15px;">
+            <input type="checkbox" id="countdown2LoopEnable"> 無限ループ
+            <input type="checkbox" id="countdown2SoundEnable" checked="" style="margin-left: 15px;"> サウンド有効
+        </div>
+
+        <div class="controls">
+            <button id="startCountdown2Btn" class="start">開始</button>
+            <button id="stopCountdown2Btn" class="stop">停止</button>
+            <button id="resetCountdown2Btn" class="reset">リセット</button>
+        </div>
+    </div>
+
     <div class="section">
         <button class="toggle-mode-btn" onclick="toggleNightMode()">モード切り替え</button>
     </div>
 </div>
+
 <script>
     let count = 0;
     let metronomeTimer = null;
     let audioCtx = null;
 
-    // Countdown Timer variables
+    // Countdown Timer 1 variables
     let countdownTimerId = null;
     let countdownStartTime = 0;
     let countdownPhase = "idle";
@@ -211,6 +269,14 @@
     let countdownDelayMs = 0;
     let countdownEarlyFinishMs = 0;
     let countdownLastBeepedSecond = -1;
+
+    // Countdown Timer 2 variables
+    let countdown2TimerId = null;
+    let countdown2StartTime = 0;
+    let countdown2Phase = "idle";
+    let countdown2TotalMs = 0;
+    let countdown2DelayMs = 0;
+    let countdown2LastBeepedSecond = -1;
 
     // Stopwatch variables
     let stopwatchStartTime = 0;
@@ -220,6 +286,27 @@
     let lapTimes = [];
     let stopwatchDelayStopTimer = null;
     let stopwatchDelayStartTimer = null;
+
+    // --- メトロノーム Target 計算関数 ---
+    function calculateAndApplyTarget() {
+        const valA = parseFloat(document.getElementById('metroCalcA').value) || 0;
+        const valB = parseFloat(document.getElementById('metroCalcB').value) || 0;
+        const valC = parseFloat(document.getElementById('bpm').value) || 100; // C = BPM
+
+        if (valC === 0) return;
+
+        // 計算式: (A - B * 30) * (700 - 1800 / C) / 490000
+        const result = (valA - valB * 30) * (700 - (1800 / valC)) / 490000;
+
+        if (result < 0) {
+            alert('計算結果がマイナスになりました。入力値を確認してください。');
+            return;
+        }
+
+        // 繰り下げ（切り捨て）して整数でTargetに入力
+        const targetInt = Math.floor(result);
+        document.getElementById('targetCount').value = targetInt;
+    }
 
     function playSound() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -289,7 +376,7 @@
         stopBtn.style.display = 'none';
     }
 
-    // (A - B - C) / 30 の計算関数
+    // カウントダウン1: (A - B - C) / 30 の計算関数
     function calculateAndApplyWaitTime() {
         const valA = parseFloat(document.getElementById('calcA').value) || 0;
         const valB = parseFloat(document.getElementById('calcB').value) || 0;
@@ -308,15 +395,45 @@
         document.getElementById('countdownMin').value = minutes;
         document.getElementById('countdownSec').value = parseFloat(seconds.toFixed(3));
         
-        // 待機表示の更新
         if (countdownPhase === "idle") {
             resetCountdownTimer();
         }
     }
 
-    // Countdown Timer functions
-    function playBeepCountdown() {
-        if (!document.getElementById('countdownSoundEnable').checked) return;
+    // --- カウントダウンタイマー2用 計算関数 ---
+    function calculateAndApplyTimer2() {
+        const valA = parseFloat(document.getElementById('calc2A').value) || 0;
+        const valB = parseFloat(document.getElementById('calc2B').value) || 0;
+        const valC = parseFloat(document.getElementById('calc2C').value) || 0; // 秒数
+
+        // 1. C を待機時間に入力
+        const waitMin = Math.floor(valC / 60);
+        const waitSec = valC % 60;
+        document.getElementById('countdown2Min').value = waitMin;
+        document.getElementById('countdown2Sec').value = parseFloat(waitSec.toFixed(3));
+
+        // 2. ((A - B - 700) / 30) - C を開始までの猶予に入力（小数点3桁まで）
+        const delayTotalSec = ((valA - valB - 700) / 30) - valC;
+
+        if (delayTotalSec < 0) {
+            alert('猶予の計算結果がマイナスになりました。入力値を確認してください。');
+            return;
+        }
+
+        const delayMin = Math.floor(delayTotalSec / 60);
+        const delaySec = delayTotalSec % 60;
+
+        document.getElementById('countdown2DelayMin').value = delayMin;
+        document.getElementById('countdown2DelaySec').value = parseFloat(delaySec.toFixed(3));
+
+        if (countdown2Phase === "idle") {
+            resetCountdown2Timer();
+        }
+    }
+
+    // --- Countdown Timer 1 functions ---
+    function playBeepCountdown(isSoundEnabled = true) {
+        if (!isSoundEnabled) return;
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -339,7 +456,6 @@
     function runCountdown() {
         const now = Date.now();
         let elapsedMsFromPhaseStart = now - countdownStartTime;
-
         let currentPhaseRemainingMs;
         const countdownLabel = document.getElementById('countdownPhaseLabel');
 
@@ -358,7 +474,7 @@
             const currentSecondsLeft = Math.floor(currentPhaseRemainingMs / 1000);
             if (currentSecondsLeft >= 0 && currentSecondsLeft < 10) {
                 if (currentSecondsLeft !== countdownLastBeepedSecond) {
-                    playBeepCountdown();
+                    playBeepCountdown(document.getElementById('countdownSoundEnable').checked);
                     countdownLastBeepedSecond = currentSecondsLeft;
                 }
             }
@@ -373,7 +489,7 @@
                 countdownLabel.textContent = "カウント中";
                 countdownLastBeepedSecond = -1;
             } else if (countdownPhase === "active") {
-                playBeepCountdown();
+                playBeepCountdown(document.getElementById('countdownSoundEnable').checked);
                 if (document.getElementById('countdownLoopEnable').checked) {
                     initAndStartCountdown();
                 } else {
@@ -425,7 +541,104 @@
         countdownLastBeepedSecond = -1;
     }
 
-    // Stopwatch functions
+    // --- Countdown Timer 2 functions ---
+    function updateCountdown2Display(ms) {
+        const countdownDisplay = document.getElementById('countdown2Display');
+        if (ms < 0) ms = 0;
+        const totalSec = Math.floor(ms / 1000);
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        const cs = Math.floor((ms % 1000) / 10);
+        countdownDisplay.textContent = `${String(m).padStart(2, '0')} 分 ${String(s).padStart(2, '0')} 秒 ${String(cs).padStart(2, '0')}`;
+    }
+
+    function runCountdown2() {
+        const now = Date.now();
+        let elapsedMsFromPhaseStart = now - countdown2StartTime;
+        let currentPhaseRemainingMs;
+        const countdownLabel = document.getElementById('countdown2PhaseLabel');
+
+        if (countdown2Phase === "delay") {
+            currentPhaseRemainingMs = countdown2DelayMs - elapsedMsFromPhaseStart;
+            countdownLabel.textContent = "開始までの猶予...";
+        } else if (countdown2Phase === "active") {
+            currentPhaseRemainingMs = countdown2TotalMs - elapsedMsFromPhaseStart;
+            countdownLabel.textContent = "カウント中";
+        } else {
+            return;
+        }
+
+        if (countdown2Phase === "delay" || countdown2Phase === "active") {
+            const currentSecondsLeft = Math.floor(currentPhaseRemainingMs / 1000);
+            if (currentSecondsLeft >= 0 && currentSecondsLeft < 10) {
+                if (currentSecondsLeft !== countdown2LastBeepedSecond) {
+                    playBeepCountdown(document.getElementById('countdown2SoundEnable').checked);
+                    countdown2LastBeepedSecond = currentSecondsLeft;
+                }
+            }
+        }
+
+        updateCountdown2Display(currentPhaseRemainingMs);
+
+        if (currentPhaseRemainingMs <= 0) {
+            if (countdown2Phase === "delay") {
+                countdown2Phase = "active";
+                countdown2StartTime = Date.now();
+                countdownLabel.textContent = "カウント中";
+                countdown2LastBeepedSecond = -1;
+            } else if (countdown2Phase === "active") {
+                playBeepCountdown(document.getElementById('countdown2SoundEnable').checked);
+                if (document.getElementById('countdown2LoopEnable').checked) {
+                    initAndStartCountdown2();
+                } else {
+                    stopCountdown2Timer();
+                    updateCountdown2Display(0);
+                    countdownLabel.textContent = "終了";
+                }
+            }
+        }
+    }
+
+    function initAndStartCountdown2() {
+        countdown2TotalMs = (parseInt(document.getElementById('countdown2Min').value || 0) * 60 + parseFloat(document.getElementById('countdown2Sec').value || 0)) * 1000;
+        countdown2DelayMs = (parseInt(document.getElementById('countdown2DelayMin').value || 0) * 60 + parseFloat(document.getElementById('countdown2DelaySec').value || 0)) * 1000;
+        countdown2StartTime = Date.now();
+
+        if (countdown2DelayMs > 0) {
+            countdown2Phase = "delay";
+            document.getElementById('countdown2PhaseLabel').textContent = "開始までの猶予...";
+        } else {
+            countdown2Phase = "active";
+            document.getElementById('countdown2PhaseLabel').textContent = "カウント中";
+        }
+        countdown2LastBeepedSecond = -1;
+
+        updateCountdown2Display(countdown2Phase === "delay" ? countdown2DelayMs : countdown2TotalMs);
+
+        if (countdown2TimerId) clearInterval(countdown2TimerId);
+        countdown2TimerId = setInterval(runCountdown2, 10);
+    }
+
+    function stopCountdown2Timer() {
+        if (countdown2TimerId) {
+            clearInterval(countdown2TimerId);
+            countdown2TimerId = null;
+        }
+        countdown2Phase = "idle";
+        document.getElementById('countdown2PhaseLabel').textContent = "待機中";
+        countdown2LastBeepedSecond = -1;
+    }
+
+    function resetCountdown2Timer() {
+        stopCountdown2Timer();
+        const initialMin = parseInt(document.getElementById('countdown2Min').value) || 0;
+        const initialSec = parseFloat(document.getElementById('countdown2Sec').value) || 0;
+        updateCountdown2Display((initialMin * 60 + initialSec) * 1000);
+        document.getElementById('countdown2PhaseLabel').textContent = "待機中";
+        countdown2LastBeepedSecond = -1;
+    }
+
+    // --- Stopwatch functions ---
     function formatTime(ms) {
         const totalSeconds = Math.floor(ms / 1000);
         const minutes = Math.floor(totalSeconds / 60);
@@ -589,10 +802,9 @@
         lapStopwatchBtn.style.display = 'none';
     }
 
-    // ストップウォッチのタイムをカウントダウンの切り上げ欄に転記する機能 (小数点3桁対応)
+    // ストップウォッチのタイムをカウントダウン1の切り上げ欄に転記する機能
     function transferToCountdownUp() {
         let targetMs = 0;
-        // ラップが記録されていれば直近のラップタイム（単独）、なければ現在のストップウォッチ合計時間を使用
         if (lapTimes.length > 0) {
             targetMs = lapTimes[lapTimes.length - 1].duration;
         } else {
@@ -618,9 +830,14 @@
     document.getElementById('stopCountdownBtn').addEventListener('click', stopCountdownTimer);
     document.getElementById('resetCountdownBtn').addEventListener('click', resetCountdownTimer);
 
+    document.getElementById('startCountdown2Btn').addEventListener('click', initAndStartCountdown2);
+    document.getElementById('stopCountdown2Btn').addEventListener('click', stopCountdown2Timer);
+    document.getElementById('resetCountdown2Btn').addEventListener('click', resetCountdown2Timer);
+
     window.onload = function() {
         resetMetronome();
         resetCountdownTimer();
+        resetCountdown2Timer();
     };
 </script>
 
